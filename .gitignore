@@ -1,0 +1,58 @@
+# Visual Studio
+.vs/
+.vscode/
+.vscode-test/
+*.csproj.user
+*.csproj.DotSettings
+*.csproj.nuget.g.props
+*.csproj.nuget.g.targets
+*.sln.ide
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+*.log
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+# Folder config file
+Desktop.ini
+# Recycle Bin used by some editors
+$RECYCLE.BIN/
+# Windows shortcuts
+*.lnk
+# Rider
+.idea/
+*.sln.iml
+# NAudio specific
+*.wav
+*.mp3
+*.aiff
+*.flac
+*.ogg
+*.wma
+# Other audio file formats
+*.aac
+*.alac
+*.au
+*.m4a
+*.m4b
+*.mka
+# Windows specific files
+*.pfx
+*.p12
+*.snk
