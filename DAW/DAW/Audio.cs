@@ -1,6 +1,7 @@
 ﻿using NAudio.Wave;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace DAW
         WaveFileWriter writer;
         WaveIn wave;
 
-        Audio()
+        public Audio()
         {
             //Create the variable to hold the recording
             wave = new WaveIn();
@@ -30,8 +31,8 @@ namespace DAW
             wave.RecordingStopped += Wave_RecordingStopped;
 
             //File location
-            string pathToDestop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string fileLocation = pathToDestop + "/DAW/TestRecording.wav";
+            string pathToDesktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string fileLocation = GetNextFileName(pathToDesktop + "/DAWTestRecordings/TestRecording.wav");
 
             //Create a writer to make the Wave file
             writer = new WaveFileWriter(fileLocation, wave.WaveFormat);
@@ -58,6 +59,23 @@ namespace DAW
         public void StopRecording()
         {
             wave.StopRecording();
+        }
+
+        private string GetNextFileName(string baseFileName)
+        {
+            int count = 1;
+            string fileName = baseFileName;
+            string directory = Path.GetDirectoryName(baseFileName);
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(baseFileName);
+            string extension = Path.GetExtension(baseFileName);
+
+            while (File.Exists(fileName))
+            {
+                fileName = Path.Combine(directory, $"{fileNameWithoutExtension}_{count}{extension}");
+                count++;
+            }
+
+            return fileName;
         }
     }
 }
