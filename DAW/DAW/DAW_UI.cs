@@ -5,6 +5,8 @@ using System.IO;
 using System.Windows.Forms;
 using System.Drawing.Text;
 using System.Runtime.InteropServices;
+using System.Threading;
+using Timer = System.Windows.Forms.Timer;
 
 namespace DAW
 {
@@ -15,11 +17,14 @@ namespace DAW
 
         private DateTime recordingStartTime;
 
+        int colorCounter = 0;
+        private bool toggleColor = false;
+
         private List<CustomButton> buttons;
         private Audio newTrack;
         private Point lastLocation; // Declare lastLocation variable here
         private Timer uiUpdateTimer;
-        private Timer recordingTimer; 
+        private Timer recordingTimer;
         private bool Recording;
 
         Color buttonDefault = Color.FromArgb(50, Color.Black);
@@ -113,31 +118,51 @@ namespace DAW
         private void DAW_UI_Shown(object sender, EventArgs e)
         {
 
-            _recordingTimerTBX.Location = new Point((ClientSize.Width / 2) - 75, (buttons[3].Rect.Height + 5)); 
+            _recordingTimerTBX.Location = new Point((ClientSize.Width / 2) - 75, (buttons[3].Rect.Height + 5));
             _recordingTimerTBX.Font = sevSegsFont;
             _recordingTimerTBX.ReadOnly = true;
             _recordingTimerTBX.Enabled = false;
             _recordingTimerTBX.Size = new System.Drawing.Size(215, 20);
             _recordingTimerTBX.BackColor = Color.Black;
             _recordingTimerTBX.ForeColor = Color.White;
-            
+
         }
 
         private void RecordingTimer_Tick(object sender, EventArgs e)
         {
             TimeSpan elapsedTime = DateTime.Now - recordingStartTime;
             _recordingTimerTBX.Text = elapsedTime.ToString("h\\:mm\\:ss\\.ffff");
+           
+
+            // Update the color counter every tick (assuming 10ms interval)
+    colorCounter += recordingTimer.Interval;
+
+    // Check if 250 milliseconds have passed
+    if (colorCounter >= 250)
+    {
+        // Reset the counter
+        colorCounter = 0;
+        // Toggle the color
+        toggleColor = !toggleColor;
+
+        // Set the background color based on the toggle state
+        _recordingTimerTBX.BackColor = toggleColor ? Color.Red : Color.Black;
+    }
         }
 
         private void UiUpdateTimer_Tick(object sender, EventArgs e)
         {
+
+
             Invalidate();
+
         }
 
         private void StopButton()
         {
             buttons[5].DefaultColor = buttonActionDefault;
             buttons[5].HoverColor = Color.FromArgb(150, Color.Red);
+            _recordingTimerTBX.BackColor = Color.Black;
             newTrack?.StopRecording();
             Recording = false;
             recordingTimer.Stop(); // Stop the recording timer
@@ -151,15 +176,14 @@ namespace DAW
 
         private void RecordButton()
         {
-            if(Recording)
+            if (Recording)
             {
                 StopButton();
-                
+
             }
             else
             {
                 _recordingTimerTBX.Text = "0:00:00.0000";
-                _recordingTimerTBX.ForeColor = Color.Red;
                 buttons[5].DefaultColor = Color.FromArgb(150, Color.Red);
                 buttons[5].HoverColor = Color.Red;
                 newTrack = new Audio();
