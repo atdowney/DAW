@@ -28,7 +28,17 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this._recordingTimerTBX = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
+            // 
+            // _recordingTimerTBX
+            // 
+            this._recordingTimerTBX.Font = new System.Drawing.Font("Microsoft Sans Serif", 26.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this._recordingTimerTBX.Location = new System.Drawing.Point(496, 60);
+            this._recordingTimerTBX.Name = "_recordingTimerTBX";
+            this._recordingTimerTBX.Size = new System.Drawing.Size(207, 47);
+            this._recordingTimerTBX.TabIndex = 0;
+            this._recordingTimerTBX.Text = "0:00:00.0000";
             // 
             // DAW_UI
             // 
@@ -37,16 +47,20 @@
             this.BackgroundImage = global::DAW.Properties.Resources.DAWspace;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this._recordingTimerTBX);
             this.Cursor = System.Windows.Forms.Cursors.Default;
             this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "DAW_UI";
             this.Text = "Test";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
+
+        private System.Windows.Forms.TextBox _recordingTimerTBX;
     }
 }
 

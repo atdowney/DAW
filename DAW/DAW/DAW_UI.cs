@@ -1,18 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
+using System.Drawing.Text;
+using System.Runtime.InteropServices;
 
 namespace DAW
 {
     public partial class DAW_UI : Form
     {
+        PrivateFontCollection privateFonts = new PrivateFontCollection();
+        Font sevSegsFont;
+
+        private DateTime recordingStartTime;
+
         private List<CustomButton> buttons;
         private Audio newTrack;
         private Point lastLocation; // Declare lastLocation variable here
         private Timer uiUpdateTimer;
+        private Timer recordingTimer; 
+        private bool Recording;
+
+        Color buttonDefault = Color.FromArgb(50, Color.Black);
+        Color buttonActionDefault = Color.FromArgb(150, Color.Black);
 
         public DAW_UI()
+        {
+            InitializeComponent();
+            LoadCustomFont();
+            InitializeCustomComponents();
+            SetupEventHandlers();
+        }
+
+        private void InitializeCustomComponents()
         {
             // Set form properties
             FormBorderStyle = FormBorderStyle.None;
@@ -30,18 +51,25 @@ namespace DAW
             // Define button properties
             int buttonWidth = 35;
             int buttonHeight = 20;
-            int buttonSpacing = 10;
 
             // Create window control buttons
-            buttons.Add(new CustomButton("X", new Rectangle(ClientSize.Width - buttonWidth, 0, buttonWidth, buttonHeight), Color.Black, Color.Red));
-            buttons.Add(new CustomButton("_", new Rectangle(ClientSize.Width - 3 * buttonWidth, 0, buttonWidth, buttonHeight), Color.Black, Color.Gray));
-            buttons.Add(new CustomButton("▢", new Rectangle(ClientSize.Width - 2 * buttonWidth, 0, buttonWidth, buttonHeight), Color.Black, Color.Gray));
+            buttons.Add(new CustomButton("X", 10, new Rectangle(ClientSize.Width - buttonWidth, 0, buttonWidth, buttonHeight), buttonDefault, Color.Red));
+            buttons.Add(new CustomButton("_", 10, new Rectangle(ClientSize.Width - 3 * buttonWidth, 0, buttonWidth, buttonHeight), buttonDefault, Color.Gray));
+            buttons.Add(new CustomButton("▢", 10, new Rectangle(ClientSize.Width - 2 * buttonWidth, 0, buttonWidth, buttonHeight), buttonDefault, Color.Gray));
+
+            // Define button properties
+            int actionButtonWidth = 65;
+            int actionButtonHeight = 50;
+            int buttonSpacing = 10;
 
             // Create audio control buttons
-            buttons.Add(new CustomButton("■", new Rectangle((ClientSize.Width / 2) - (buttonWidth + buttonSpacing), 0, buttonWidth, buttonHeight), Color.Black, Color.Red));
-            buttons.Add(new CustomButton("▶", new Rectangle((ClientSize.Width / 2), 0, buttonWidth, buttonHeight), Color.Black, Color.Green));
-            buttons.Add(new CustomButton("●", new Rectangle((ClientSize.Width / 2) + (buttonWidth + buttonSpacing), 0, buttonWidth, buttonHeight), Color.Black, Color.Red));
+            buttons.Add(new CustomButton("■", 20, new Rectangle((ClientSize.Width / 2) - (actionButtonWidth + buttonSpacing), 0, actionButtonWidth, actionButtonHeight), buttonActionDefault, Color.FromArgb(150, Color.Red)));
+            buttons.Add(new CustomButton("▶", 20, new Rectangle((ClientSize.Width / 2), 0, actionButtonWidth, actionButtonHeight), buttonActionDefault, Color.FromArgb(150, Color.Green)));
+            buttons.Add(new CustomButton("●", 20, new Rectangle((ClientSize.Width / 2) + (actionButtonWidth + buttonSpacing), 0, actionButtonWidth, actionButtonHeight), buttonActionDefault, Color.FromArgb(150, Color.Red)));
+        }
 
+        private void SetupEventHandlers()
+        {
             // Add button click events
             buttons[0].Click += (s, e) => Close();
             buttons[1].Click += (s, e) => WindowState = FormWindowState.Minimized;
@@ -74,33 +102,73 @@ namespace DAW
             uiUpdateTimer.Interval = 100; // 100 milliseconds
             uiUpdateTimer.Tick += UiUpdateTimer_Tick;
             uiUpdateTimer.Start();
+
+            recordingTimer = new Timer();
+            recordingTimer.Interval = 10;
+            recordingTimer.Tick += RecordingTimer_Tick;
+
+            Shown += DAW_UI_Shown;
+        }
+
+        private void DAW_UI_Shown(object sender, EventArgs e)
+        {
+
+            _recordingTimerTBX.Location = new Point((ClientSize.Width / 2) - 75, (buttons[3].Rect.Height + 5)); 
+            _recordingTimerTBX.Font = sevSegsFont;
+            _recordingTimerTBX.ReadOnly = true;
+            _recordingTimerTBX.Enabled = false;
+            _recordingTimerTBX.Size = new System.Drawing.Size(215, 20);
+            _recordingTimerTBX.BackColor = Color.Black;
+            _recordingTimerTBX.ForeColor = Color.White;
+            
+        }
+
+        private void RecordingTimer_Tick(object sender, EventArgs e)
+        {
+            TimeSpan elapsedTime = DateTime.Now - recordingStartTime;
+            _recordingTimerTBX.Text = elapsedTime.ToString("h\\:mm\\:ss\\.ffff");
         }
 
         private void UiUpdateTimer_Tick(object sender, EventArgs e)
         {
-            // Place code here to update the UI as needed every 100ms
-            // For example, you might want to refresh the form:
             Invalidate();
         }
 
         private void StopButton()
         {
-            buttons[5].DefaultColor = Color.Black;
+            buttons[5].DefaultColor = buttonActionDefault;
+            buttons[5].HoverColor = Color.FromArgb(150, Color.Red);
             newTrack?.StopRecording();
+            Recording = false;
+            recordingTimer.Stop(); // Stop the recording timer
 
-            
         }
 
         private void PlayButton()
         {
-            Console.WriteLine("Inside Play button");  
+            Console.WriteLine("Inside Play button");
         }
 
         private void RecordButton()
         {
-            buttons[5].DefaultColor = Color.Red;
-            newTrack = new Audio();
-            newTrack.Record();
+            if(Recording)
+            {
+                StopButton();
+                
+            }
+            else
+            {
+                _recordingTimerTBX.Text = "0:00:00.0000";
+                _recordingTimerTBX.ForeColor = Color.Red;
+                buttons[5].DefaultColor = Color.FromArgb(150, Color.Red);
+                buttons[5].HoverColor = Color.Red;
+                newTrack = new Audio();
+                newTrack.Record();
+                Recording = true;
+                recordingStartTime = DateTime.Now; // Store the start time
+                recordingTimer.Start(); // Start the recording timer
+            }
+
         }
 
         private void MainForm_MouseDown(object sender, MouseEventArgs e)
@@ -124,7 +192,7 @@ namespace DAW
 
         private void MainForm_MouseMoveButtons(object sender, MouseEventArgs e)
         {
-            foreach (var button in buttons)
+            foreach (CustomButton button in buttons)
             {
                 button.OnMouseMove(e.Location);
             }
@@ -132,7 +200,7 @@ namespace DAW
 
         private void MainForm_MouseLeaveButtons(object sender, EventArgs e)
         {
-            foreach (var button in buttons)
+            foreach (CustomButton button in buttons)
             {
                 button.OnMouseLeave();
             }
@@ -140,7 +208,7 @@ namespace DAW
 
         private void MainForm_MouseClick(object sender, MouseEventArgs e)
         {
-            foreach (var button in buttons)
+            foreach (CustomButton button in buttons)
             {
                 button.OnMouseClick(e.Location);
             }
@@ -149,10 +217,21 @@ namespace DAW
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
-            foreach (var button in buttons)
+            foreach (CustomButton button in buttons)
             {
                 button.Draw(e.Graphics);
             }
+        }
+
+        private void LoadCustomFont()
+        {
+            privateFonts = new PrivateFontCollection();
+            string fontPath = Path.Combine(Application.StartupPath, "Fonts", "SevenSegment.ttf");
+            privateFonts.AddFontFile(fontPath);
+
+            FontFamily customFontFamily = privateFonts.Families[0];
+            sevSegsFont = new Font(customFontFamily, 30, FontStyle.Regular);
+
         }
     }
 }
